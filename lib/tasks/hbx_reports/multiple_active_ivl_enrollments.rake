@@ -40,46 +40,67 @@ namespace :reports do
             active_ivl_dental_enrollments = ivl_dental_enrollments.select { |enr| (HbxEnrollment::ENROLLED_STATUSES).include? enr.aasm_state }
             
             if (active_ivl_health_enrollments.size > 1)
-              active_ivl_health_enrollments.each do |enr|
-                enr.hbx_enrollment_members.each do |dep|
-                  csv << [enr.subscriber.person.hbx_id,
-                          enr.subscriber.person.first_name, 
-                          enr.subscriber.person.last_name,
-                          dep.is_subscriber ? '---' : dep.person.hbx_id,
-                          dep.is_subscriber ? '---' : dep.person.first_name,
-                          dep.is_subscriber ? '---' : dep.person.last_name,
-                          enr.hbx_id,
-                          enr.coverage_kind,
-                          enr.aasm_state,
-                          enr.plan.hios_id,
-                          enr.effective_on,
-                          enr.terminated_on
-                         ]
-                  processed_count +=1
+              ivl_health_enr = []
+              enr_count = active_ivl_health_enrollments.size
+              (0..enr_count-2).each do |i|
+                (1..enr_count-1).each do |j|
+                  if (i != j) && (active_ivl_health_enrollments[i].hbx_enrollment_members.map(&:applicant_id).sort == active_ivl_health_enrollments[j].hbx_enrollment_members.map(&:applicant_id).sort)
+                    ivl_health_enr.push(active_ivl_health_enrollments[i], active_ivl_health_enrollments[j])
+                    ivl_health_enr.each do |enr|
+                      enr.hbx_enrollment_members.each do |dep|
+                        primary = dep.person.families.first.primary_applicant.person
+                        csv << [enr.subscriber.present? ? enr.subscriber.person.hbx_id : primary.hbx_id,
+                                enr.subscriber.present? ? enr.subscriber.person.first_name : primary.first_name, 
+                                enr.subscriber.present? ? enr.subscriber.person.last_name : primary.last_name,
+                                dep.is_subscriber ? '---' : dep.person.hbx_id,
+                                dep.is_subscriber ? '---' : dep.person.first_name,
+                                dep.is_subscriber ? '---' : dep.person.last_name,
+                                enr.hbx_id,
+                                enr.coverage_kind,
+                                enr.aasm_state,
+                                enr.plan.hios_id,
+                                enr.effective_on,
+                                enr.terminated_on
+                               ]
+                        processed_count +=1
+                      end
+                    end
+                  end
                 end
               end
             end
             
             if (active_ivl_dental_enrollments.size > 1)
-              active_ivl_dental_enrollments.each do |enr|
-                enr.hbx_enrollment_members.each do |dep|
-                  csv << [enr.subscriber.person.hbx_id,
-                          enr.subscriber.person.first_name, 
-                          enr.subscriber.person.last_name,
-                          dep.is_subscriber ? '---' : dep.person.hbx_id,
-                          dep.is_subscriber ? '---' : dep.person.first_name,
-                          dep.is_subscriber ? '---' : dep.person.last_name,
-                          enr.hbx_id,
-                          enr.coverage_kind,
-                          enr.aasm_state,
-                          enr.plan.hios_id,
-                          enr.effective_on,
-                          enr.terminated_on
-                         ]
-                  processed_count +=1
+              ivl_dental_enr = []
+              enr_count = active_ivl_dental_enrollments.size
+              (0..enr_count-2).each do |i|
+                (0..enr_count-1).each do |j|
+                  if (i != j) && (active_ivl_dental_enrollments[i].hbx_enrollment_members.map(&:applicant_id).sort == active_ivl_dental_enrollments[j].hbx_enrollment_members.map(&:applicant_id).sort)
+                    ivl_dental_enr.push(active_ivl_dental_enrollments[i], active_ivl_dental_enrollments[j])
+                    ivl_dental_enr.each do |enr|
+                      enr.hbx_enrollment_members.each do |dep|
+                        primary = dep.person.families.first.primary_applicant.person
+                        csv << [enr.subscriber.present? ? enr.subscriber.person.hbx_id : primary.hbx_id,
+                                enr.subscriber.present? ? enr.subscriber.person.first_name : primary.first_name, 
+                                enr.subscriber.present? ? enr.subscriber.person.last_name : primary.last_name,
+                                dep.is_subscriber ? '---' : dep.person.hbx_id,
+                                dep.is_subscriber ? '---' : dep.person.first_name,
+                                dep.is_subscriber ? '---' : dep.person.last_name,
+                                enr.hbx_id,
+                                enr.coverage_kind,
+                                enr.aasm_state,
+                                enr.plan.hios_id,
+                                enr.effective_on,
+                                enr.terminated_on
+                               ]
+                        processed_count +=1
+                      end
+                    end
+                  end
                 end
               end
             end
+
           rescue Exception => e
             puts e.message
           end
