@@ -10,6 +10,7 @@ function setGroupSelectionHandlers(){
   if($('#market_kinds').length) {
 
     if ( $('#market_kind_individual').is(':checked') ) {
+      $('#shop-coverage-household input').removeProp('checked');
       $('#market_kind_individual').prop("checked", true);
       $('#dental-radio-button').show();
       disableEmployerSelection();
@@ -53,24 +54,26 @@ function setGroupSelectionHandlers(){
     // $("#coverage_kind_health").prop("checked", true);
     $("#ivl-coverage-household input[type=checkbox]").prop("checked", false);
     employers.each(function(){
-      if($(this).is(":checked") && $(this).attr('dental_benefits') == 'true'){
-        $('#dental-radio-button').slideDown();
-        $('#coverage_kind_health').on('change', function() {
-          $('#shop-coverage-household .health').show();
-          $('#shop-coverage-household .health tr').not(".ineligible_row").find('input').prop('checked', 'checked');
-          $('#shop-coverage-household .dental').hide();
-          $('#shop-coverage-household .dental input').removeProp('checked');
-        });
+      if($(this).is(":checked")){
+        if($(this).attr('dental_benefits') == 'true'){
+          $('#dental-radio-button').slideDown();
+          $('#coverage_kind_health').on('change', function() {
+            $('#shop-coverage-household .health').show();
+            $('#shop-coverage-household .health tr').not(".ineligible_row").find('input').prop('checked', 'checked');
+            $('#shop-coverage-household .dental').hide();
+            $('#shop-coverage-household .dental input').removeProp('checked');
+          });
 
-        $('#coverage_kind_dental').on('change', function() {
-          $('#shop-coverage-household .dental').show();
-          $('#shop-coverage-household .dental tr').not(".ineligible_row").find('input').prop('checked', 'checked');
-          $('#shop-coverage-household .health').hide();
-          $('#shop-coverage-household .health input').removeProp('checked');
-        });
+          $('#coverage_kind_dental').on('change', function() {
+            $('#shop-coverage-household .dental').show();
+            $('#shop-coverage-household .dental tr').not(".ineligible_row").find('input').prop('checked', 'checked');
+            $('#shop-coverage-household .health').hide();
+            $('#shop-coverage-household .health input').removeProp('checked');
+          });
 
-      } else {
-        $('#dental-radio-button').slideUp();
+        } else {
+          $('#dental-radio-button').slideUp();
+        }
       }
     })
   }
