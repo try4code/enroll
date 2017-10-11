@@ -45,7 +45,7 @@ namespace :reports do
               (0..enr_count-2).each do |i|
                 (1..enr_count-1).each do |j|
                   if (i != j) && (active_ivl_health_enrollments[i].hbx_enrollment_members.map(&:applicant_id).sort == active_ivl_health_enrollments[j].hbx_enrollment_members.map(&:applicant_id).sort)
-                    ivl_health_enr.push(active_ivl_health_enrollments[i], active_ivl_health_enrollments[j])
+                    ivl_health_enr.push(active_ivl_health_enrollments[i], active_ivl_health_enrollments[j]).uniq!
                     ivl_health_enr.each do |enr|
                       enr.hbx_enrollment_members.each do |dep|
                         primary = dep.person.families.first.primary_applicant.person
@@ -76,7 +76,7 @@ namespace :reports do
               (0..enr_count-2).each do |i|
                 (0..enr_count-1).each do |j|
                   if (i != j) && (active_ivl_dental_enrollments[i].hbx_enrollment_members.map(&:applicant_id).sort == active_ivl_dental_enrollments[j].hbx_enrollment_members.map(&:applicant_id).sort)
-                    ivl_dental_enr.push(active_ivl_dental_enrollments[i], active_ivl_dental_enrollments[j])
+                    ivl_dental_enr.push(active_ivl_dental_enrollments[i], active_ivl_dental_enrollments[j]).uniq!
                     ivl_dental_enr.each do |enr|
                       enr.hbx_enrollment_members.each do |dep|
                         primary = dep.person.families.first.primary_applicant.person
