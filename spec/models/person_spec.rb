@@ -1,6 +1,10 @@
 require 'rails_helper'
 
 describe Person do
+  before :each do
+    # allow_any_instance_of(Family).to receive(:application_applicable_year).and_return(TimeKeeper.date_of_record.year)
+    allow_any_instance_of(FinancialAssistance::Application).to receive(:set_benchmark_plan_id)
+  end
 
   describe "model" do
     it { should validate_presence_of :first_name }
@@ -999,13 +1003,13 @@ describe Person do
 
   describe "assisted and unassisted" do
     context "is_aqhp?" do
-      let(:person) {FactoryGirl.create(:person, :with_consumer_role)}
-      let(:person1) {FactoryGirl.create(:person, :with_consumer_role)}
-      let(:person2) {FactoryGirl.create(:person, :with_consumer_role)}
-      let(:family1)  {FactoryGirl.create(:family, :with_primary_family_member)}
-      # let(:household) {FactoryGirl.create(:household, family: family1)}
-      let(:application) { FactoryGirl.create(:application, family: family1) }
-      let(:tax_household) {FactoryGirl.create(:tax_household, application: application) }
+      let!(:person) { FactoryGirl.create(:person, :with_consumer_role) }
+      let!(:family1)  { FactoryGirl.create(:family, :with_primary_family_member, person: person) }
+      let!(:person1) { FactoryGirl.create(:person, :with_consumer_role) }
+      let!(:person2) { FactoryGirl.create(:person, :with_consumer_role) }
+      let!(:application) { FactoryGirl.create(:application, family: family1) }
+      let!(:household) { family1.households.first }
+      let!(:tax_household) { FactoryGirl.create(:tax_household, household: household,application_id: application.id) }
       let(:eligibility_determination) {FactoryGirl.create(:eligibility_determination, tax_household_id: tax_household.id, csr_percent_as_integer: 10)}
 
       before :each do
@@ -1531,5 +1535,45 @@ describe Person, "given a relationship to update", dbclean: :after_each do
     family_member2.add_relationship(primary_person, "parent", family.id)
     primary_person.add_relationship(family_member2, PersonRelationship::InverseMap["parent"], family.id)
     expect(family_member2.same_successor_exists?(primary_person, family.id)).not_to eq false
+  end
+end
+
+describe "person update_attributes has phone numbers" do
+  let!(:pa) {Phone.new(kind: "home", area_code: "202", number: "555-9999", full_phone_number:"2025559999") }
+  let!(:person) {FactoryGirl.build(:person,:with_consumer_role, phones: pa.to_a )}
+
+  let!(:person_demographics) {
+    {"first_name"=>"ivl",
+     "middle_name"=>"",
+     "last_name"=>"test",
+     "name_sfx"=>"",
+     "gender"=>"male",
+     "is_applying_coverage"=>"true",
+     "us_citizen"=>"true",
+     "naturalized_citizen"=>"false",
+     "indian_tribe_member"=>"false",
+     "tribal_id"=>"",
+     "is_incarcerated"=>"false",
+     "is_physically_disabled"=>"false",
+     "ethnicity"=>["", "Other Asian", "", "", "", "", "", ""],
+     "is_consumer_role"=>"true",
+     "no_dc_address"=>"false"
+    } }
+
+  let!(:same_phones_attributes) {{"0"=>{"kind"=>"home", "full_phone_number"=> "2025559999"},
+                             "1"=>{"kind"=>"home", "full_phone_number"=> ""},
+                             "2"=>{"kind"=>"work", "full_phone_number"=>""},
+                             "3"=>{"kind"=>"fax", "full_phone_number"=>""}}}
+
+  let!(:phones_attributes) {{"0"=>{"kind"=>"home", "full_phone_number"=>"20211111133"}}}
+  let!(:person_attributes) { person_demographics.merge({ "phones_attributes"=>same_phones_attributes})}
+  let!(:person_attributes1) { person_demographics.merge({ "phones_attributes"=>phones_attributes})}
+
+  it "is same as previous number" do
+    expect(person.phone_numbers_matched?(person_attributes)).to eq true
+  end
+
+  it "is not same as previous number" do
+    expect(person.phone_numbers_matched?(person_attributes1)).to eq false
   end
 end
