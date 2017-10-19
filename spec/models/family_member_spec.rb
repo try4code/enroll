@@ -205,94 +205,56 @@ describe "for families with financial assistance application" do
 end
 
 
-describe "tbnn" do
-  let(:consumer_role){FactoryGirl.build(:consumer_role)}
-  let!(:person) {Person.new (person_demo)}
-  let!(:same_phone) {Phone.new(kind: "home", area_code: "202", number: "555-9999", full_phone_number:"2025559999") }
-  let(:same_address){ Address.new(kind: 'home', address_1: "1 street ct", address_2: "test2", city: "was", state: "DC", zip: "22211")}
+describe "person attr & params" do
+  include_examples "family_member examples"
+  include_examples "phone numbers"
+  include_examples "addresses attr examples"
+  include_examples "person params examples"
+  include_examples "email attr examples"
 
-  let!(:other_phone) {Phone.new(kind: "home", area_code: "123", number: "456-7890", full_phone_number:"1234567890") }
-  let(:other_address){ Address.new(kind: 'home', address_1: "1111 spalding ct", address_2: "apt 444", city: "was", state: "DC", zip: "22211")}
-
-
-  # let!(:person2) {FactoryGirl.create(:person,:with_test_data, phones: phone.to_a, addresses: address.to_a)}
-  let!(:family) {FactoryGirl.create(:family, :with_primary_family_member, person: person)}
   let!(:family_member) {FactoryGirl.build(:family_member, family: family, person: person2)}
-  let!(:family_members) {family.family_members}
   let!(:dob) {"1972-04-04"}
 
-  let!(:person_demo) {
-    {
-        first_name: 'ivl',
-        middle_name: 'X',
-        last_name: 'test',
-        gender: "male",
-        dob: dob.to_date,
-        ssn: '123121234',
-        no_ssn: "0",
-        us_citizen: 'true',
-        naturalized_citizen: 'true',
-        indian_tribe_member: 'true',
-        tribal_id: '1234',
-        is_incarcerated: 'true',
-        is_physically_disabled: 'true',
-        eligible_immigration_status: "false",
-        ethnicity: ["", "", "", "", "", "", ""],
-        addresses: same_address.to_a,
-        phones: same_phone.to_a,
-        no_dc_address: "false"
-    }
-  }
-  let!(:person2) {Person.new (person_demo)}
+  let!(:family_member_person_attributes) { person_params2.merge({"addresses" => array_address1})}
 
-  let!(:person_demographics) {
-    {
-    "first_name" => 'ivl',
-    "middle_name" => 'X',
-    "last_name" => 'test',
-    "gender" => "male",
-    "dob" => dob.to_date,
-    "ssn" => '123121234',
-    "no_ssn" => "0",
-    "relationship" => 'spouse',
-    "is_applying_coverage" => 'true',
-    "us_citizen" => 'true',
-    "naturalized_citizen" => 'true',
-    "indian_tribe_member" => 'true',
-    "tribal_id" => '1234',
-    "is_incarcerated" => 'true',
-    "is_physically_disabled" => 'true',
-    "eligible_immigration_status" => "false",
-    "ethnicity" => ["", "", "", "", "", "", ""],
-    "no_dc_address" => "false"
-    }
-  }
+  let!(:primary_person_attributes){person_primary_params2.merge({"phones_attributes"=> array_phone1, "addresses_attributes" => array_address1, "emails_attributes" => array_email1})}
 
-
-  let(:email_attributes) { {"0"=>{"kind"=>"home", "address"=>"test@example.com"}}}
-  let(:addresses_attributes) { {"0"=>{"kind"=>"home", "address_1"=>"1 street ct", "address_2"=>"apt test2", "city"=>"was", "state"=>"DC", "zip"=>"22211"}
-                                } }
-  let!(:same_phones_attributes) {{"0"=>{"kind"=>"home", "full_phone_number"=> "2025559999"},
-                                  "1"=>{"kind"=>"home", "full_phone_number"=> ""},
-                                  "2"=>{"kind"=>"work", "full_phone_number"=>""},
-                                  "3"=>{"kind"=>"fax", "full_phone_number"=>""}}}
-
-  let!(:phones_attributes) {{"0"=>{"kind"=>"home", "full_phone_number"=>"20211111133"}}}
-  let!(:person_attributes) { person_demographics.merge({ "phones_attributes"=>same_phones_attributes,"addresses" => addresses_attributes})}
-
-
-
-
-  it "test" do
+  it "should be true for family member when passed with same params" do
     allow(family_member).to receive(:relationship).and_return 'spouse'
     allow(family_member).to receive(:is_applying_coverage).and_return 'true'
     allow(family_member).to receive(:eligible_immigration_status).and_return 'false'
-    allow(person).to receive(:consumer_role).and_return(consumer_role)
-    allow(person2).to receive(:consumer_role).and_return(consumer_role)
     allow(person2).to receive(:us_citizen).and_return 'true'
     allow(family_member).to receive(:naturalized_citizen).and_return 'true'
     allow(family_member).to receive(:indian_tribe_member).and_return 'true'
-    expect(family_member.family_mem_attr_changed?(person_attributes)).to eq true
+    expect(family_member.family_mem_attr_changed?(family_member_person_attributes)).to eq true
+  end
+
+  it "should be false for family member when passed with different params" do
+    allow(family_member).to receive(:relationship).and_return 'spouse'
+    allow(family_member).to receive(:is_applying_coverage).and_return 'false'
+    allow(family_member).to receive(:eligible_immigration_status).and_return 'false'
+    allow(person2).to receive(:us_citizen).and_return 'true'
+    allow(family_member).to receive(:naturalized_citizen).and_return 'true'
+    allow(family_member).to receive(:indian_tribe_member).and_return 'true'
+    expect(family_member.family_mem_attr_changed?(family_member_person_attributes)).to eq false
+  end
+
+  it "should be false for primary member when passed with different params" do
+    allow(family.primary_family_member).to receive(:is_applying_coverage).and_return 'false'
+    allow(family.primary_family_member).to receive(:eligible_immigration_status).and_return 'false'
+    allow(person).to receive(:us_citizen).and_return 'true'
+    allow(family.primary_family_member).to receive(:naturalized_citizen).and_return 'true'
+    allow(family.primary_family_member).to receive(:indian_tribe_member).and_return 'true'
+    expect(family.primary_family_member. primary_mem_attr_changed?(primary_person_attributes)).to eq false
+  end
+
+  it "should be false for primary member when passed with different params" do
+    allow(family.primary_family_member).to receive(:is_applying_coverage).and_return 'true'
+    allow(family.primary_family_member).to receive(:eligible_immigration_status).and_return 'false'
+    allow(person).to receive(:us_citizen).and_return 'true'
+    allow(family.primary_family_member).to receive(:naturalized_citizen).and_return 'true'
+    allow(family.primary_family_member).to receive(:indian_tribe_member).and_return 'true'
+    expect(family.primary_family_member. primary_mem_attr_changed?(primary_person_attributes)).to eq true
   end
 
 end

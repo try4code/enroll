@@ -1539,41 +1539,21 @@ describe Person, "given a relationship to update", dbclean: :after_each do
 end
 
 describe "person update_attributes has phone numbers" do
-  let!(:pa) {Phone.new(kind: "home", area_code: "202", number: "555-9999", full_phone_number:"2025559999") }
-  let!(:person) {FactoryGirl.build(:person,:with_consumer_role, phones: pa.to_a )}
+  include_examples "family_member examples"
+  include_examples "phone numbers"
+  include_examples "addresses attr examples"
+  include_examples "person params examples"
+  include_examples "email attr examples"
 
-  let!(:person_demographics) {
-    {"first_name"=>"ivl",
-     "middle_name"=>"",
-     "last_name"=>"test",
-     "name_sfx"=>"",
-     "gender"=>"male",
-     "is_applying_coverage"=>"true",
-     "us_citizen"=>"true",
-     "naturalized_citizen"=>"false",
-     "indian_tribe_member"=>"false",
-     "tribal_id"=>"",
-     "is_incarcerated"=>"false",
-     "is_physically_disabled"=>"false",
-     "ethnicity"=>["", "Other Asian", "", "", "", "", "", ""],
-     "is_consumer_role"=>"true",
-     "no_dc_address"=>"false"
-    } }
-
-  let!(:same_phones_attributes) {{"0"=>{"kind"=>"home", "full_phone_number"=> "2025559999"},
-                             "1"=>{"kind"=>"home", "full_phone_number"=> ""},
-                             "2"=>{"kind"=>"work", "full_phone_number"=>""},
-                             "3"=>{"kind"=>"fax", "full_phone_number"=>""}}}
-
-  let!(:phones_attributes) {{"0"=>{"kind"=>"home", "full_phone_number"=>"20211111133"}}}
-  let!(:person_attributes) { person_demographics.merge({ "phones_attributes"=>same_phones_attributes})}
-  let!(:person_attributes1) { person_demographics.merge({ "phones_attributes"=>phones_attributes})}
+  let!(:dob) {"1972-04-04"}
+  let!(:person_attributes) { person_params2.merge({ "phones_attributes"=>array_phone3})}
+  let!(:person_attributes1) { person_params2.merge({ "phones_attributes"=>array_phone4})}
 
   it "is same as previous number" do
-    expect(person.phone_numbers_matched?(person_attributes)).to eq true
+    expect(person.phone_matched?(person_attributes)).to eq true
   end
 
   it "is not same as previous number" do
-    expect(person.phone_numbers_matched?(person_attributes1)).to eq false
+    expect(person.phone_matched?(person_attributes1)).to eq false
   end
 end

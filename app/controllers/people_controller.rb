@@ -193,7 +193,7 @@ class PeopleController < ApplicationController
   end
 
   def update
-    is_changed = primary_mem_attr_changed?
+    attributes_changed = primary_mem_attr_changed?
     sanitize_person_params
     @person = find_person(params[:id])
     clean_duplicate_addresses
@@ -230,13 +230,14 @@ class PeopleController < ApplicationController
       end
     end
 
-    phone_numbers_matched = @person.phone_numbers_matched?(person_params)
+    #to check if phone is changed before and after update
+    phone_numbers_matched = @person.phone_matched?(person_params)
 
     # Any change in demographics should copy submitted FAA
     if phone_numbers_matched && @person.primary_family.applications.present?
-        if !is_changed && !@person.primary_family.application_in_progress
-          Forms::FamilyMember.find( find_primary_family_member.id.to_s).copy_finanacial_assistances_application
- end
+      if !attributes_changed && !@person.primary_family.application_in_progress
+        Forms::FamilyMember.find( find_primary_family_member.id.to_s).copy_finanacial_assistances_application
+      end
     end
   end
 

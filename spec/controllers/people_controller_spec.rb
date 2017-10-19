@@ -56,7 +56,7 @@ RSpec.describe PeopleController, type: :controller do
       allow(Person).to receive(:find).and_return(person)
       allow(Person).to receive(:where).and_return(Person)
       allow(Person).to receive(:first).and_return(person)
-      allow(person).to receive(:phone_numbers_matched?).and_return true
+      allow(person).to receive(:phone_matched?).and_return true
       allow(controller).to receive(:sanitize_person_params).and_return(true)
       allow(person).to receive(:consumer_role).and_return(consumer_role)
 
@@ -129,46 +129,24 @@ RSpec.describe PeopleController, type: :controller do
     end
   end
 
-
   describe "POST ivl update" do
-    let!(:person) { FactoryGirl.create(:person) }
-    let!(:family) {FactoryGirl.create(:family, :with_primary_family_member, person: person)}
+    include_examples "family_member examples"
+    include_examples "phone numbers"
+    include_examples "addresses attr examples"
+    include_examples "person params examples"
+    include_examples "email attr examples"
+
     let!(:application) {FactoryGirl.create(:application, family: family, assistance_year: 2017)}
+    let!(:dob) {"1972-04-04"}
 
-    let!(:person_demographics) {
-    {"first_name"=>"ivl",
-     "middle_name"=>"",
-     "last_name"=>"test",
-     "name_sfx"=>"",
-     "gender"=>"male",
-     "is_applying_coverage"=>"true",
-     "us_citizen"=>"true",
-     "naturalized_citizen"=>"false",
-     "indian_tribe_member"=>"false",
-     "tribal_id"=>"",
-     "is_incarcerated"=>"false",
-     "is_physically_disabled"=>"false",
-     "ethnicity"=>["", "Other Asian", "", "", "", "", "", ""],
-     "is_consumer_role"=>"true",
-     "no_dc_address"=>"false"
-    } }
+    let(:person_attributes) { person_params2.merge({:email_attributes=> array_email1, :addresses_attributes=> array_address1, :phones_attributes=>array_phone1})}
 
-    let(:person_attributes) { person_demographics.merge({:email_attributes=> email_attributes, :addresses_attributes=> addresses_attributes, :phones_attributes=>phones_attributes.to_hash})}
-
-    let(:email_attributes) { {"0"=>{"kind"=>"home", "address"=>"test@example.com"}}}
-    let(:addresses_attributes) { {"0"=>{"kind"=>"home", "address_1"=>"address1", "address_2"=>"", "city"=>"city1", "state"=>"DC", "zip"=>"22211"},
-                                  "1"=>{"kind"=>"mailing", "address_1"=>"address1", "address_2"=>"", "city"=>"city1", "state"=>"DC", "zip"=>"22211"}} }
-
-    let!(:phones_attributes) {{"0"=>{"kind"=>"home", "full_phone_number"=>""},
-                               "1"=>{"kind"=>"mobile", "full_phone_number"=>""},
-                               "2"=>{"kind"=>"work", "full_phone_number"=>""},
-                               "3"=>{"kind"=>"fax", "full_phone_number"=>""}}}
     before :each do
       allow(Person).to receive(:find).and_return(person)
       allow(Person).to receive(:where).and_return(Person)
       allow(Person).to receive(:first).and_return(person)
-      allow(person).to receive(:phone_numbers_matched?).and_return true
-      allow(person).to receive(:consumer_role).and_return(consumer_role)
+      allow(person).to receive(:phone_matched?).and_return true
+      # allow(person).to receive(:consumer_role).and_return(consumer_role)
       sign_in user
     end
 

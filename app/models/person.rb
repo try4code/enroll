@@ -930,7 +930,7 @@ class Person
     person_relationships.where(family_id: family_id, predecessor_id: self.id, successor_id: successor.id).first.present?
   end
 
-  def phone_numbers_matched?(person_params)
+  def phone_matched?(person_params)
     status = []
     phones.as_json.each_with_index do |a, i|
       a.slice("full_phone_number").each do |k, v|

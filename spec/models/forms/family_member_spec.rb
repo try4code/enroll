@@ -499,43 +499,26 @@ describe Forms::FamilyMember, "which describes an existing family member" do
 
   describe "when update on demographic fields" do
     before(:each) do
+      allow(person).to receive(:consumer_role).and_return (consumer_role)
       allow(family_member).to receive(:family_mem_attr_changed?).and_return true
       allow(family).to receive(:application_in_progress).and_return true
     end
 
-    let!(:person) {FactoryGirl.create(:person, :with_consumer_role)}
-    let!(:person2) {FactoryGirl.create(:person, :with_consumer_role)}
-    let!(:family) {FactoryGirl.create(:family, :with_primary_family_member, person: person)}
+    include_examples "family_member examples"
+    include_examples "phone numbers"
+    include_examples "addresses attr examples"
+    include_examples "person params examples"
+    include_examples "email attr examples"
+
+    let!(:consumer_role) {FactoryGirl.build(:consumer_role)}
     let!(:family_member) {FactoryGirl.build(:family_member, family: family, person: person2)}
     let!(:family_members) {family.family_members}
     let!(:family_member_id) { family_member.id}
     let!(:family_id) { family.id}
-    let(:relationship) {"spouse"}
     let!(:dob) {"2007-06-09"}
     let!(:application) {FactoryGirl.create(:application, family: family, assistance_year: 2017)}
 
-    let!(:person_demographics) {
-      {
-          "first_name" => "aaa",
-          "last_name" => "bbb",
-          "middle_name" => "ccc",
-          "name_pfx" => "ddd",
-          "name_sfx" => "eee",
-          "ssn" => "123456778",
-          "gender" => "female",
-          "dob" => dob,
-          "no_ssn"=>nil,
-          "race" => "race",
-          "ethnicity" => ["ethnicity"],
-          "language_code" => "english",
-          "is_incarcerated" => "no",
-          "tribal_id" => "test",
-          "is_physically_disabled" => nil,
-          "same_with_primary"=>"true"
-      }
-    }
-
-    let(:update_attributes) {person_demographics.merge("family_id" => family_id, "relationship" => relationship)}
+    let(:update_attributes) {person_params2.merge("family_id" => family_id,"same_with_primary"=>"true")}
     subject {Forms::FamilyMember.new({:id => family_member_id})}
 
     it 'should copy lastest submitted application on change in attributes' do
@@ -544,6 +527,14 @@ describe Forms::FamilyMember, "which describes an existing family member" do
       allow(subject).to receive(:assign_person_address).and_return true
       subject.update_attributes(update_attributes)
       expect(family.applications.count).to eq 2
+    end
+
+    it 'should not copy lastest submitted application on same attributes' do
+      allow(family_member).to receive(:family_mem_attr_changed?).and_return true
+      allow(family).to receive(:application_in_progress).and_return false
+      allow(subject).to receive(:assign_person_address).and_return true
+      subject.update_attributes(update_attributes)
+      expect(family.applications.count).to eq 1
     end
 
     it 'should not copy application when in draft' do
