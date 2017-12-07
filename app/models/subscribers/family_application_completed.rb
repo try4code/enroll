@@ -181,21 +181,11 @@ module Subscribers
       ssn = verified_family_member.person_demographics.ssn
       ssn = '' if ssn == "999999999"
       dob = verified_family_member.person_demographics.birth_date
-      last_name_regex = /^#{verified_family_member.person.name_last}$/i
-      first_name_regex = /^#{verified_family_member.person.name_first}$/i
+      last_name = verified_family_member.person.name_last
+      first_name = verified_family_member.person.name_first
+      params = {ssn: ssn, dob: dob, first_name: first_name, last_name: last_name}
 
-      if !ssn.blank?
-        Person.where({
-          :encrypted_ssn => Person.encrypt_ssn(ssn),
-          :dob => dob
-        }).first
-      else
-        Person.where({
-          :dob => dob,
-          :last_name => last_name_regex,
-          :first_name => first_name_regex
-        }).first
-      end
+      Person.search_record(params)
     end
   end
 end

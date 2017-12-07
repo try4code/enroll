@@ -564,6 +564,38 @@ describe Person do
 
   end
 
+  describe "#class_methods" do
+    before(:all) do
+      @person_1 = Person.create!(first_name: "John1", last_name: "Doe1", dob: "1983-05-14", ssn: "517994321")
+    end
+
+    after(:all) do
+      DatabaseCleaner.clean
+    end
+
+    context "#search_record" do
+      it "should return person record if ssn is present" do
+        expect(Person.search_record(ssn: @person_1.ssn, dob: @person_1.dob)).to eq @person_1
+        expect(Person.by_ssn_and_dob(@person_1.ssn, @person_1.dob)).to eq [@person_1]
+      end
+
+      it "should return person record if ssn is not present and first name, last name and dob are present" do
+        expect(Person.search_record(first_name: @person_1.first_name, last_name: @person_1.last_name, dob: @person_1.dob)).to eq @person_1
+        expect(Person.by_dob_first_and_last_name(@person_1.dob, @person_1.first_name, @person_1.last_name)).to eq [@person_1]
+      end
+
+      it "should return person record of employer if staff role is present" do
+        employer_staff_role = EmployerStaffRole.new(employer_profile_id: EmployerProfile.new.id)
+        @person_1.update_attributes(employer_staff_roles: [employer_staff_role])
+        expect(Person.search_record(ssn: "332211111", match_ssn_employer_person_flag: true, first_name: @person_1.first_name, last_name: @person_1.last_name, dob: @person_1.dob)).to eq @person_1
+      end
+
+      it "should return nil if none of the params match" do
+        expect(Person.search_record(ssn: "333444222", dob: TimeKeeper.date_of_record - 20.years, first_name: "John", last_name: "Doe")).to eq nil
+      end
+    end
+  end
+
   describe "large family with multiple employees - The Brady Bunch", :dbclean => :after_all do
     include_context "BradyBunchAfterAll"
 

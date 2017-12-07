@@ -635,7 +635,7 @@ class Person
 
     def match_existing_person(personish)
       return nil if personish.ssn.blank?
-      Person.where(:encrypted_ssn => encrypt_ssn(personish.ssn), :dob => personish.dob).first
+      by_ssn_and_dob(personish.ssn, personish.dob).first
     end
 
     def person_has_an_active_enrollment?(person)
@@ -678,6 +678,45 @@ class Person
       premium_impication_for_enrollment
     end
 
+    def match_ssn_employer_person(dob, first_name, last_name)
+      potential_person = by_dob_first_and_last_name(dob, first_name, last_name).first
+      return potential_person if potential_person.present? && potential_person.employer_staff_roles?
+      nil
+    end
+
+    def by_ssn_and_dob(ssn_query, dob_query)
+      Person.where({
+        :encrypted_ssn => encrypt_ssn(ssn_query),
+        :dob => dob_query
+      })
+    end
+
+    def by_dob_first_and_last_name(dob_query, f_name, l_name)
+      f_name = /^#{f_name}$/i
+      l_name = /^#{l_name}$/i
+      Person.where({
+        :dob => dob_query,
+        :last_name => l_name,
+        :first_name => f_name
+      })
+    end
+
+    # Returns a single instance of a person when matched by identifying information criteria
+    def search_record(params)
+      ssn_query = params[:ssn]
+      dob_query = params[:dob]
+      f_name = params[:first_name]
+      l_name = params[:last_name]
+      flag = params[:match_ssn_employer_person_flag] || false
+
+      if ssn_query.present?
+        by_ssn_and_dob(ssn_query, dob_query).first ||
+        (flag == true ? match_ssn_employer_person(dob_query, f_name, l_name) : nil)
+      else
+        by_dob_first_and_last_name(dob_query, f_name, l_name).first
+      end
+    end
+
     # Return an instance list of active People who match identifying information criteria
     def match_by_id_info(options)
       ssn_query = options[:ssn]
@@ -688,12 +727,10 @@ class Person
       raise ArgumentError, "must provide an ssn or first_name/last_name/dob or both" if (ssn_query.blank? && (dob_query.blank? || last_name.blank? || first_name.blank?))
 
       matches = Array.new
-      matches.concat Person.active.where(encrypted_ssn: encrypt_ssn(ssn_query), dob: dob_query).to_a unless ssn_query.blank?
+      matches.concat by_ssn_and_dob(ssn_query, dob_query).to_a unless ssn_query.blank?
       #matches.concat Person.where(last_name: last_name, dob: dob_query).active.to_a unless (dob_query.blank? || last_name.blank?)
       if first_name.present? && last_name.present? && dob_query.present?
-        first_exp = /^#{first_name}$/i
-        last_exp = /^#{last_name}$/i
-        matches.concat Person.where(dob: dob_query, last_name: last_exp, first_name: first_exp).to_a.select{|person| person.ssn.blank? || ssn_query.blank?}
+        matches.concat by_dob_first_and_last_name(dob_query, first_name, last_name).to_a.select{|person| person.ssn.blank? || ssn_query.blank?}
       end
       matches.uniq
     end

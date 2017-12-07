@@ -189,9 +189,6 @@ module Factories
         })
 
         person = employee_relationship.match_person
-        # if person.blank?
-        #    person = Person.where({ :encrypted_ssn => Person.encrypt_ssn(census_employee.ssn) }).first
-        # end
 
         if person.blank?
           @count += 1

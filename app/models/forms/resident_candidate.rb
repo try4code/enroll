@@ -27,29 +27,18 @@ module Forms
       @dob = Date.strptime(val, "%Y-%m-%d") rescue nil
     end
 
-    def match_person
-      if !ssn.blank?
-        Person.where({
-                       :dob => dob,
-                       :encrypted_ssn => Person.encrypt_ssn(ssn)
-                   }).first || match_ssn_employer_person
-      else
-        Person.where({
-                       :dob => dob,
-                       :last_name => /^#{last_name}$/i,
-                       :first_name => /^#{first_name}$/i,
-                   }).first
-      end
+    def options
+      {
+        dob: dob,
+        first_name: first_name,
+        last_name: last_name,
+        ssn: ssn,
+        match_ssn_employer_person_flag: true
+      }
     end
 
-    def match_ssn_employer_person
-      potential_person = Person.where({
-                       :dob => dob,
-                       :last_name => /^#{last_name}$/i,
-                       :first_name => /^#{first_name}$/i,
-                   }).first
-      return potential_person if potential_person.present? && potential_person.employer_staff_roles?
-      nil
+    def match_person
+      Person.search_record(options)
     end
 
     def uniq_ssn

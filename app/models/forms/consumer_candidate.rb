@@ -46,29 +46,18 @@ module Forms
       @dob = Date.strptime(val, "%Y-%m-%d") rescue nil
     end
 
-    def match_person
-      if !ssn.blank?
-        Person.where({
-                       :dob => dob,
-                       :encrypted_ssn => Person.encrypt_ssn(ssn)
-                   }).first || match_ssn_employer_person
-      else
-        Person.where({
-                       :dob => dob,
-                       :last_name => /^#{last_name}$/i,
-                       :first_name => /^#{first_name}$/i,
-                   }).first
-      end
+    def options
+      {
+        dob: dob,
+        first_name: first_name,
+        last_name: last_name,
+        ssn: ssn,
+        match_ssn_employer_person_flag: true
+      }
     end
 
-    def match_ssn_employer_person
-      potential_person = Person.where({
-                       :dob => dob,
-                       :last_name => /^#{last_name}$/i,
-                       :first_name => /^#{first_name}$/i,
-                   }).first
-      return potential_person if potential_person.present? && potential_person.employer_staff_roles?
-      nil
+    def match_person
+      Person.search_record(options)
     end
 
     def uniq_ssn
@@ -84,7 +73,7 @@ module Forms
     def uniq_ssn_dob
       return true if ssn.blank?
       person_with_ssn = Person.where(encrypted_ssn: Person.encrypt_ssn(ssn)).first
-      person_with_ssn_dob = Person.where(encrypted_ssn: Person.encrypt_ssn(ssn), dob: dob).first
+      person_with_ssn_dob = Person.by_ssn_and_dob(ssn, dob).first
       if person_with_ssn != person_with_ssn_dob
         errors.add(:base,
           "This Social Security Number and Date-of-Birth is invalid in our records.  Please verify the entry, and if correct, contact the DC Customer help center at #{Settings.contact_center.phone_number}.")
