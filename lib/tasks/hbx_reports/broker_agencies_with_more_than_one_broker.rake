@@ -16,6 +16,7 @@ namespace :reports do
           Brokers count
         )
 
+      Dir.mkdir("hbx_report") unless File.exists?("hbx_report")
       file_name = "#{Rails.root}/hbx_report/broker_agency_with_more_than_one_broker.csv"
 
       CSV.open(file_name, "w", force_quotes: true, headers: true) do |csv|
