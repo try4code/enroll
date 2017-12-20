@@ -27,8 +27,16 @@ module PdfTemplates
       return false
     end
 
+    def general_agency_notice?
+      return false
+    end
+
     def employee_notice?
       return true
+    end
+
+    def general_agency?
+      false
     end
   end
 end

@@ -1,3 +1,4 @@
+
 puts "*"*80
 puts "::: Cleaning ApplicationEventKinds :::"
 ApplicationEventKind.delete_all
@@ -408,7 +409,7 @@ shop_notice_triggers = [
   
   {
     hbx_id: 'DAE053',
-    title: 'Employee Eligibility Notice',
+    title: 'Eligible to Apply for Employer-sponsored Health Insurance',
     description: 'This notices goes to all the employees who have successfully matched their employer.',
     resource_name: 'employee_role',
     event_name: 'employee_eligibility_notice',
@@ -555,6 +556,29 @@ shop_notice_triggers = [
       }
     ]
   },
+
+  {
+   hbx_id: 'D086',
+   title: 'Genaral Agency Fired',
+   description: "When a General Agency is terminated by an employer/broker, then General Agency receives termination notice",
+   resource_name: 'general_agent_profile',
+   event_name: 'general_agency_terminated',
+   notice_triggers: [
+     {
+       name: 'GA Fired',
+       notice_template: 'notices/general_agency_notices/general_agency_fired_notice',
+       notice_builder: 'GeneralAgencyNotices::GeneralAgencyTerminatedNotice',
+       mpi_indicator: 'MPI_D086',
+       notice_trigger_element_group: {
+         market_places: ['shop'],
+         primary_recipients: ["general_agency"],
+         primary_recipient_delivery_method: ["secure_message"],
+         secondary_recipients: []
+       }
+     }
+   ]
+ },
+
   {
     hbx_id: 'SHOP28',
     title: 'Second Reminder to publish Application',
@@ -728,28 +752,6 @@ shop_notice_triggers = [
   },
 
   {
-    hbx_id: 'SHOP40',
-    title: 'Employee_Mid-Year Plan Change-Non-Congressional',
-    description: 'Employee mid year plan change when an eligiblity determination is reached',
-    resource_name: 'employer',
-    event_name: 'employee_mid_year_plan_change_non_congressional',
-    notice_triggers: [
-      {
-        name: 'Employee Made Mid-Year Plan',
-        notice_template: 'notices/shop_employer_notices/employee_mid_year_plan_change_non_congressional',
-        notice_builder: 'ShopEmployerNotices::EmployeeMidYearPlanChangeNonCongressional',
-        mpi_indicator: 'MPI_SHOP40',
-        notice_trigger_element_group: {
-          market_places: ['shop'],
-          primary_recipients: ["employer"],
-          primary_recipient_delivery_method: ["secure_message"],
-          secondary_recipients: []
-        }
-      }
-    ]
-  },
-
-  {
     hbx_id: 'SHOP35',
     title: 'Special Enrollment Period Denial',
     description: 'EE SEP Requested by Employee outside of allowable time frame',
@@ -836,7 +838,7 @@ shop_notice_triggers = [
   },
 
   {
-    hbx_id: 'SHOP42',
+    hbx_id: 'SHOP_D073',
     title: 'Employee Plan Selection Confirmation',
     description: 'Employee selects a plan during annual open enrollement OE is still open and not final confirmation',
     resource_name: 'employee_role',
@@ -846,7 +848,7 @@ shop_notice_triggers = [
         name: 'Notice to employee after they select a plan during Annual Open Enrollment',
         notice_template: 'notices/shop_employee_notices/employee_select_plan_during_open_enrollment',
         notice_builder: 'ShopEmployeeNotices::EmployeeSelectPlanDuringOpenEnrollment',
-        mpi_indicator: 'MPI_SHOP42',
+        mpi_indicator: 'SHOP_D073',
         notice_trigger_element_group: {
           market_places: ['shop'],
           primary_recipients: ["employee"],
@@ -880,7 +882,7 @@ shop_notice_triggers = [
   },
 
   {
-    hbx_id: 'SHOPDIE075',
+    hbx_id: 'SHOP_D075',
     title: 'Employee Enrollment Confirmation',
     description: 'Employee selects a plan during annual open enrollment OE is still close and final confirmation',
     resource_name: 'employee_role',
@@ -890,7 +892,7 @@ shop_notice_triggers = [
         name: 'Notice to employee after they select a plan Annual Open Enrollment',
         notice_template: 'notices/shop_employee_notices/initial_employee_plan_selection_confirmation',
         notice_builder: 'ShopEmployeeNotices::InitialEmployeePlanSelectionConfirmation',
-        mpi_indicator: 'MPI_SHOPDIE075',
+        mpi_indicator: 'SHOP_D075',
         notice_trigger_element_group: {
           market_places: ['shop'],
           primary_recipients: ["employee"],
@@ -901,17 +903,17 @@ shop_notice_triggers = [
     ]
   },
   {
-    hbx_id: 'SHOP37',
-    title: 'Employee mid-year plan change',
+    hbx_id: 'SHOP_D037',
+    title: 'Employee has made a change to their employer-sponsored coverage selection',
     description: 'Employee mid year plan change when an eligiblity determination is reached',
     resource_name: 'employer',
-    event_name: 'ee_mid_year_plan_change_notice_congressional',
+    event_name: 'ee_mid_year_plan_change_congressional_notice',
     notice_triggers: [
       {
-        name: 'Employee mid year plan change notice',
+        name: 'Employee Mid-Year Plan change Congressional',
         notice_template: 'notices/shop_employer_notices/ee_mid_year_plan_change_notice_congressional',
-        notice_builder: 'ShopEmployerNotices::EeMidYearPlanChangeNoticeCongressional',
-        mpi_indicator: 'MPI_SHOP37',
+        notice_builder: 'ShopEmployerNotices::EeMidYearPlanChangeNotice',
+        mpi_indicator: 'SHOP_D037',
         notice_trigger_element_group: {
           market_places: ['shop'],
           primary_recipients: ["employer"],
@@ -922,17 +924,17 @@ shop_notice_triggers = [
     ]
   },
   {
-    hbx_id: 'SHOP40',
-    title: 'Employee Mid-Year Plan Change',
+    hbx_id: 'SHOP_D040',
+    title: 'Employee has made a change to their employer-sponsored coverage selection',
     description: 'Employee mid year plan change when an eligiblity determination is reached',
     resource_name: 'employer',
-    event_name: 'employee_mid_year_plan_change_non_congressional',
+    event_name: 'ee_mid_year_plan_change_non_congressional_notice',
     notice_triggers: [
       {
-        name: 'Employee Mid-Year Plan change',
+        name: 'Employee Mid-Year Plan change Non-Congressional',
         notice_template: 'notices/shop_employer_notices/employee_mid_year_plan_change_non_congressional',
-        notice_builder: 'ShopEmployerNotices::EmployeeMidYearPlanChangeNonCongressional',
-        mpi_indicator: 'MPI_SHOP40',
+        notice_builder: 'ShopEmployerNotices::EeMidYearPlanChangeNotice',
+        mpi_indicator: 'SHOP_D040',
         notice_trigger_element_group: {
           market_places: ['shop'],
           primary_recipients: ["employer"],
@@ -965,6 +967,50 @@ shop_notice_triggers = [
   },
 
   {
+    hbx_id: 'D048',
+    title: 'You have been Hired as a Broker',
+    description: "When a broker is hired to a group, a notice is sent to the broker's broker mail inbox alerting them of the hire.",
+    resource_name: 'broker_role',
+    event_name: 'broker_hired',
+    notice_triggers: [
+      {
+        name: 'Broker Hired',
+        notice_template: 'notices/shop_broker_notices/broker_hired_notice',
+        notice_builder: 'ShopBrokerNotices::BrokerHiredNotice',
+        mpi_indicator: 'SHOP_D048',
+        notice_trigger_element_group: {
+          market_places: ['shop'],
+          primary_recipients: ["broker"],
+          primary_recipient_delivery_method: ["secure_message"],
+          secondary_recipients: []
+        }
+      }
+    ]
+  },
+
+  {
+    hbx_id: 'D047',
+    title: 'You have been Hired as their Broker Agency',
+    description: "When a Broker Agency is hired by an employer, they receive this notification letting them know they have a new client assigned to them.",
+    resource_name: 'broker_role',
+    event_name: 'broker_agency_hired',
+    notice_triggers: [
+      {
+        name: 'Broker Agency Hired',
+        notice_template: 'notices/shop_broker_notices/broker_agency_hired_notice',
+        notice_builder: 'ShopBrokerNotices::BrokerAgencyHiredNotice',
+        mpi_indicator: 'SHOP_D047',
+        notice_trigger_element_group: {
+          market_places: ['shop'],
+          primary_recipients: ["broker"],
+          primary_recipient_delivery_method: ["secure_message"],
+          secondary_recipients: []
+        }
+      }
+    ]
+  },
+
+  {
     hbx_id: 'DIG063',
     title: "Notice To Initial Employer's No Binder Payment Received",
     description: 'When an initial employer misses the binder payment deadline, this is sent the day after the binder payment deadline.',
@@ -975,10 +1021,32 @@ shop_notice_triggers = [
         name: ' Initial Employer No Binding Payment Received',
         notice_template: 'notices/shop_employer_notices/notice_to_employer_no_binder_payment_received',
         notice_builder: 'ShopEmployerNotices::NoticeToEmployerNoBinderPaymentReceived',
-        mpi_indicator: 'DIG063',
+        mpi_indicator: 'MPI_DIG063',
         notice_trigger_element_group: {
           market_places: ['shop'],
           primary_recipients: ["employer"],
+          primary_recipient_delivery_method: ["secure_message"],
+          secondary_recipients: []
+        }
+      }
+    ]
+  },
+
+  {
+    hbx_id: 'SHOP_D085',
+    title: 'Employer has hired you as a General agency',
+    description: ' GA is hired to a group, a notice is sent to the GAs agency mail inbox alerting them of the hire',
+    resource_name: 'general_agent_profile',
+    event_name: 'general_agency_hired_notice',
+    notice_triggers: [
+      {
+        name: 'General Agency hired notification',
+        notice_template: 'notices/shop_general_agency_notices/general_agency_hired_notice',
+        notice_builder: 'ShopGeneralAgencyNotices::GeneralAgencyHiredNotice',
+        mpi_indicator: 'SHOP_D085',
+        notice_trigger_element_group: {
+          market_places: ['shop'],
+          primary_recipients: ["general_agent_profile"],
           primary_recipient_delivery_method: ["secure_message"],
           secondary_recipients: []
         }
@@ -1007,7 +1075,28 @@ shop_notice_triggers = [
       }
     ]
   },
-  
+
+  {
+    hbx_id: 'SHOP_DAG043',
+    title: 'Confirmation of Termination of Employer-Sponsored Health Coverage',
+    description: 'Group termination confirmation for advance request',
+    resource_name: 'employer',
+    event_name: 'group_advance_termination_confirmation',
+    notice_triggers: [
+      {
+        name: 'Confirmation notice to employer after group termination',
+        notice_template: 'notices/shop_employer_notices/group_advance_termination_confirmation',
+        notice_builder: 'ShopEmployerNotices::GroupAdvanceTerminationConfirmation',
+        mpi_indicator: 'MPI_D043',
+        notice_trigger_element_group: {
+          market_places: ['shop'],
+          primary_recipients: ["employer"],
+           primary_recipient_delivery_method: ["secure_message"],
+          secondary_recipients: []
+        }
+      }
+    ]
+  },
   {
     hbx_id: 'SHOP_D092',
     title: 'Dental Carrier Exit from DC Health Link’s Small Business Marketplace',
@@ -1025,6 +1114,28 @@ shop_notice_triggers = [
           primary_recipients: ["employee"],
           primary_recipient_delivery_method: ["secure_message"],
           secondary_recipients: []
+        }
+      }
+    ]
+  },
+
+  {                
+    hbx_id: 'SHOP_D064',
+    title: 'Termination of Employer’s Health Coverage Offered through DC Health Link',
+    description: 'When an initial group misses the binder payment deadline this notice is sent to employees to let them know the group will not be offering coverage',
+    resource_name: 'employee_role',
+    event_name: 'notice_to_employee_for_missing_binder_payment', 
+    notice_triggers: [
+      {
+        name: "Notice to EEs that ER’s plan year will not be written",
+        notice_template: 'notices/shop_employee_notices/termination_of_employers_health_coverage',
+        notice_builder: 'ShopEmployeeNotices::TerminationOfEmployersHealthCoverage',
+        mpi_indicator: 'SHOP_D064',
+        notice_trigger_element_group: {
+              market_places: ['shop'],
+              primary_recipients: ["employee"],
+              primary_recipient_delivery_method: ["secure_message"],
+              secondary_recipients: []
         }
       }
     ]
@@ -1162,28 +1273,6 @@ shop_notice_triggers = [
     ]
   },
 
-  {                
-    hbx_id: 'SHOPDIE064',
-    title: 'Termination of Employer’s Health Coverage Offered through DC Health Link',
-    description: 'When an initial group misses the binder payment deadline this notice is sent to employees to let them know the group will not be offering coverage',
-    resource_name: 'employee_role',
-    event_name: 'notice_to_employee_for_missing_binder_payment', 
-    notice_triggers: [
-      {
-        name: "Notice to EEs that ER’s plan year will not be written",
-        notice_template: 'notices/shop_employee_notices/termination_of_employers_health_coverage',
-        notice_builder: 'ShopEmployeeNotices::TerminationOfEmployersHealthCoverage',
-        mpi_indicator: 'MPI_SHOPDIE064',
-        notice_trigger_element_group: {
-              market_places: ['shop'],
-              primary_recipients: ["employee"],
-              primary_recipient_delivery_method: ["secure_message"],
-              secondary_recipients: []
-            }
-        }
-    ]
-  },
-
   {
       hbx_id: 'SHOP_D050',
       title: 'Broker Agency Fired',
@@ -1231,7 +1320,7 @@ ivl_notice_triggers = [
   },
   {
     hbx_id: 'IVL_DR1',
-    title: 'REMINDER - YOU MUST SUBMIT DOCUMENTS BY THE DEADLINE TO KEEP YOUR INSURANCE',
+    title: 'Reminder - You Must Submit Documents by the Deadline to Keep Your Insurance',
     description: 'After 10 days passed, notice to be sent to Consumers informing them of the outstanding verifications',
     resource_name: 'consumer_role',
     event_name: 'first_verifications_reminder',
@@ -1426,7 +1515,7 @@ ivl_notice_triggers = [
 
   {
     hbx_id: 'IVL_FRE',
-    title: 'Review Your Insurance Plan Enrollment And Pay Your Bill Now',
+    title: 'Review Your Insurance Plan Enrollment and Pay Your Bill Now',
     description: 'Final Eligibility Notice will be sent to all UQHP/AQHP individuals',
     resource_name: 'consumer_role',
     event_name: 'final_eligibility_notice_renewal_uqhp',
@@ -1448,7 +1537,7 @@ ivl_notice_triggers = [
 
   {
     hbx_id: 'IVL_FRE',
-    title: 'Review Your Insurance Plan Enrollment And Pay Your Bill Now',
+    title: 'Review Your Insurance Plan Enrollment and Pay Your Bill Now',
     description: 'Final Eligibility Notice will be sent to all UQHP/AQHP individuals',
     resource_name: 'consumer_role',
     event_name: 'final_eligibility_notice_renewal_aqhp',
@@ -1703,7 +1792,7 @@ ivl_notice_triggers = [
   },
   {
     hbx_id: 'IVL_ENR',
-    title: 'YOUR HEALTH OR DENTAL PLAN ENROLLMENT AND PAYMENT DEADLINE',
+    title: 'Your Health or Dental Plan Enrollment and Payment Deadline',
     description: 'Notice will be sent to families after their enrollment is done.',
     resource_name: 'consumer_role',
     event_name: 'enrollment_notice',

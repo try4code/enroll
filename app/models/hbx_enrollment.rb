@@ -681,15 +681,15 @@ class HbxEnrollment
   def mid_year_plan_change_notice
     if self.census_employee.present?
       begin
-        if (self.enrollment_kind != "open_enrollment" || self.census_employee.new_hire_enrollment_period.present?) && benefit_group.plan_year.open_enrollment_end_on > TimeKeeper.date_of_record
+        if (self.enrollment_kind != "open_enrollment" || self.census_employee.new_hire_enrollment_period.present?)
           if self.benefit_group.is_congress
-            ShopNoticesNotifierJob.perform_later(self.census_employee.id.to_s, "ee_mid_year_plan_change_notice_congressional")
+            ShopNoticesNotifierJob.perform_later(self.employer_profile.id.to_s, "ee_mid_year_plan_change_congressional_notice", hbx_enrollment: self.hbx_id.to_s)
           else
-            ShopNoticesNotifierJob.perform_later(self.census_employee.id.to_s, "employee_mid_year_plan_change_non_congressional")
+            ShopNoticesNotifierJob.perform_later(self.employer_profile.id.to_s, "ee_mid_year_plan_change_non_congressional_notice", hbx_enrollment: self.hbx_id.to_s)
           end
         end  
       rescue Exception => e
-        Rails.logger.error("#{e.message}; person_id: #{self.census_employee.employee_role.present? ? self.census_employee.employee_role.person.hbx_id : nil }")
+        Rails.logger.error {"Unable to send employee mid year plan change notice to census_employee - #{census_employee.id} due to #{e.backtrace}"}
       end
     end  
   end  
@@ -1320,6 +1320,14 @@ class HbxEnrollment
                   to: :coverage_canceled
     end
 
+    event :cancel_for_non_payment, :after => :record_transition do
+      transitions from: [:coverage_termination_pending, :auto_renewing, :renewing_coverage_selected,
+                         :renewing_transmitted_to_carrier, :renewing_coverage_enrolled, :coverage_selected,
+                         :transmitted_to_carrier, :coverage_renewed, :enrolled_contingent, :unverified,
+                         :coverage_enrolled, :renewing_waived, :inactive],
+                  to: :coverage_canceled
+    end
+
     event :terminate_coverage, :after => :record_transition do
       transitions from: [:coverage_termination_pending, :coverage_selected, :coverage_enrolled, :auto_renewing,
                          :renewing_coverage_selected,:auto_renewing_contingent, :renewing_contingent_selected,
@@ -1553,8 +1561,15 @@ class HbxEnrollment
   end
 
   def ee_select_plan_during_oe
-    if is_shop? && self.census_employee.present? && self.enrollment_kind == "open_enrollment"
-      ShopNoticesNotifierJob.perform_later(self.census_employee.id.to_s, "ee_select_plan_during_oe")
+    if self.census_employee.present?
+      begin
+        if self.employee_role.is_under_open_enrollment? && self.enrollment_kind == "open_enrollment"
+          self.census_employee.update_attributes!(employee_role_id: self.employee_role.id.to_s ) if !census_employee.employee_role.present?
+          ShopNoticesNotifierJob.perform_later(self.census_employee.id.to_s, "ee_select_plan_during_oe", hbx_enrollment_id: self.hbx_id.to_s)
+        end
+      rescue Exception => e
+        Rails.logger.error { "Unable to deliver employee plan selection during OE notice to #{self.census_employee.id.to_s} due to #{e.backtrace}" }
+      end
     end
   end
 

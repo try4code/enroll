@@ -215,4 +215,35 @@ RSpec.describe GeneralAgencyProfile, dbclean: :after_each do
       end
     end
   end
+
+  describe "general agency notice trigger", type: :model, dbclean: :after_all do
+    let(:general_agency_profile) { FactoryGirl.create(:general_agency_profile) }
+    let(:employer_profile) { FactoryGirl.create(:employer_profile, general_agency_profile: general_agency_profile) }
+
+    it "should trigger general_agency_hired_notice job in queue" do
+      ActiveJob::Base.queue_adapter = :test
+      ActiveJob::Base.queue_adapter.enqueued_jobs = []
+      general_agency_profile.general_agency_hired_notice(employer_profile)
+      queued_job = ActiveJob::Base.queue_adapter.enqueued_jobs.find do |job_info|
+        job_info[:job] == ShopNoticesNotifierJob
+      end
+
+      expect(queued_job[:args]).not_to be_empty
+      expect(queued_job[:args].include?('general_agency_hired_notice')).to be_truthy
+      expect(queued_job[:args].include?("#{general_agency_profile.id.to_s}")).to be_truthy
+      expect(queued_job[:args].third["employer_profile_id"]).to eq employer_profile.id.to_s
+    end
+  end
+
+  describe ".employers_linked_with_general_agency" do
+    let!(:employer_profile){ FactoryGirl.create :employer_profile}
+    let!(:general_agency_profile) { FactoryGirl.create :general_agency_profile }
+    let!(:general_agency_account) { FactoryGirl.create :general_agency_account ,aasm_state: 'active',employer_profile: employer_profile, general_agency_profile_id: general_agency_profile.id, end_on: TimeKeeper.date_of_record}
+    let!(:general_agency_staff_role) { FactoryGirl.create(:general_agency_staff_role, general_agency_profile_id: general_agency_profile.id, :aasm_state => 'active')}
+
+    it "should return all the employers linked to the general agency" do
+      expect(general_agency_profile.employers_linked_with_general_agency).to eq [employer_profile]
+    end
+  end
+
 end
