@@ -12,7 +12,11 @@ When(/^at least one applicant is in the Info Needed state$/) do
 end
 
 Then(/^the CONTINUE button will be disabled$/) do
-  expect(page.find('#btn-continue')[:class]).to include("disabled")
+  if page.find('#btn-continue')[:disabled] 
+    expect(page.find('#btn-continue')[:disabled]).to include("disabled")
+  else
+    expect(page.find('#btn-continue')[:class]).to include("disabled")
+  end
 end
 
 Given(/^the primary member exists$/) do
