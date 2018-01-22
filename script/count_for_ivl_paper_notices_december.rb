@@ -1,4 +1,4 @@
-#rails runner script/count_for_ivl_paper_notices_december.rb
+#rails runner script/count_for_ivl_paper_notices_december.rb -e production
 
 start_at, end_at = Date.new(2017, 12, 01).to_date, Date.new(2017, 12, 31).to_date
 
@@ -29,8 +29,8 @@ Person.all_consumer_roles.by_message_created_at_datetime_range(start_at, end_at)
         final_renewal_notice_count += messages.by_created_at_date_range(start_at, end_at).where(subject: final_renewal_notice_subject).count
       end
 
-      if messages.map(&:subject).include?(first_reminder_notice_count)
-        first_reminder_notice_count += messages.by_created_at_date_range(start_at, end_at).where(subject: first_reminder_notice_count).count
+      if messages.map(&:subject).include?(first_reminder_notice_subject)
+        first_reminder_notice_count += messages.by_created_at_date_range(start_at, end_at).where(subject: first_reminder_notice_subject).count
       end
     end
   rescue => e
