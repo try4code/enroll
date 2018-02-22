@@ -1,3 +1,7 @@
+def new_address
+  { address_1: '10', address_2: 'Market Street', city: 'Washington', state: 'DC', zip: '20003' }
+end
+
 When(/^\w+ visits? the Insured portal during open enrollment$/) do
   visit "/"
   click_link 'Consumer/Family Portal'
@@ -33,6 +37,22 @@ Then(/Individual creates HBX account$/) do
   fill_in "user[password_confirmation]", :with => "aA1!aA1!aA1!"
   screenshot("create_account")
   click_button "Create account"
+end
+
+And(/^I can see the select effective date$/) do
+  expect(page).to have_content "SELECT EFFECTIVE DATE"
+end
+
+When 'I click on continue button on select effective date' do
+ click_button "Continue"
+end
+
+Then(/^I can see the error message (.*?)$/) do |message|
+ expect(page).to have_content(message)
+end
+
+And 'I select a effective date from list' do
+  select 'Date of event', from: 'effective_on_kind'
 end
 
 And(/user should see your information page$/) do
@@ -121,6 +141,23 @@ end
 
 When(/Individual clicks on Save and Exit/) do
   find('li a', text: 'SAVE & EXIT').trigger('click')
+end
+
+
+Then(/All members must have the same address/) do
+  persons = Person.all.to_a
+  f_person = persons.first
+  persons.delete(f_person)
+  primary_address = f_person.addresses.last
+  persons.each do |p|
+    f_address = p.addresses.last
+    expect(primary_address.address_1).to eq(f_address.address_1)
+    expect(primary_address.address_2).to eq(f_address.address_2)
+    expect(primary_address.city).to eq(f_address.city)
+    expect(primary_address.state).to eq(f_address.state)
+    expect(primary_address.zip).to eq(f_address.zip)
+  end
+sleep 3
 end
 
 Then (/Individual resumes enrollment/) do
@@ -300,6 +337,42 @@ And(/I should see the individual home page/) do
   # click_link "Documents"
   # click_link "Manage Family"
   # click_link "My #{Settings.site.short_name}"
+end
+
+And(/I click on the (.*?) link/) do |link_text|
+  click_link link_text
+end
+
+And(/I should see the manage family page/) do
+  expect(page).to have_content "Manage Family"
+  screenshot("manage_family")
+end
+
+And(/I click on the (.*?) tab on manage family page/) do |tab_name|
+  within('.nav-tabs') do
+    click_link tab_name
+  end
+end
+
+And(/I edit the first member from the list/) do
+  first('i.fa-pencil').click
+  wait_for_ajax
+  find('#dependent_same_with_primary').click
+end
+
+When(/I set the new address for member/) do
+  fill_in "dependent_addresses_0_address_1", :with => new_address[:address_1]
+  fill_in "dependent_addresses_0_address_2", :with => new_address[:address_2]
+  fill_in "dependent_addresses_0_city", :with=> new_address[:city]
+  find('#address_info .selectric p.label').trigger 'click'
+  find(:xpath, "//div[@class='selectric-scroll']/ul/li[contains(text(), 'DC')]").click
+  fill_in "dependent_addresses_0_zip", :with => new_address[:zip]
+  find('span.btn-primary', text: 'CONFIRM MEMBER').click
+  wait_for_ajax
+end
+
+Then(/I can see the one member with updated address/) do
+  expect(page).to have_content(new_address[:address_2])
 end
 
 Then(/^Individual edits a dependents address$/) do

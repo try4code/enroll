@@ -206,6 +206,7 @@ class PeopleController < ApplicationController
     respond_to do |format|
       if @person.update_attributes(person_params.except(:is_applying_coverage))
         @person.consumer_role.update_attribute(:is_applying_coverage, person_params[:is_applying_coverage]) if @person.consumer_role.present?
+        update_family_members_address(@family)
         format.html { redirect_to redirect_path, notice: 'Person was successfully updated.' }
         format.json { head :no_content }
       else
@@ -282,6 +283,17 @@ class PeopleController < ApplicationController
   end
 
 private
+
+  def update_family_members_address(family)
+    unless family.nil?
+      family_members = family.family_members.where(:is_primary_applicant => false)
+      family_members.each do |fm|
+        f_family_member = Forms::FamilyMember.find(fm.id)
+        f_family_member.same_with_primary = 'true'
+        f_family_member.assign_person_address(fm.person)
+      end
+    end
+  end
 
   def safe_find(klass, id)
     # puts "finding #{klass} #{id}"
